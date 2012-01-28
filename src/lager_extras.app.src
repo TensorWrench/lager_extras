@@ -1,0 +1,10 @@
+{application, lager_extras,
+ [
+  {description, "Several extra backends and formatters for lager"},
+  {vsn, "0.1"},
+  {modules, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]}
+ ]}.
