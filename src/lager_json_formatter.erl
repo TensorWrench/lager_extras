@@ -1,6 +1,31 @@
-%% Author: jason
-%% Created: Jan 27, 2012
-%% Description: TODO: Add description to lager_json_formatter
+% Copyright 2012 Tensor Wrench LLC.  All rights reserved.
+% https://github.com/TensorWrench/lager_extras
+
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are
+% met:
+%
+%     * Redistributions of source code must retain the above copyright
+% notice, this list of conditions and the following disclaimer.
+%     * Redistributions in binary form must reproduce the above
+% copyright notice, this list of conditions and the following disclaimer
+% in the documentation and/or other materials provided with the
+% distribution.
+%     * Neither the name of TensorWrench,LLC nor the names of its
+% contributors may be used to endorse or promote products derived from
+% this software without specific prior written permission.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+% "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+% LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+% A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+% OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+% SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+% LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+% DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+% THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+% (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+% OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -module(lager_json_formatter).
 
 %%
@@ -19,8 +44,6 @@
 %% API Functions
 %%
 -spec format(#lager_log_message{},list()) -> iolist().
-format(#lager_log_message{}=Msg,[]) ->
-	format(Msg,[date, " ", time," [",severity,"] ",pid, " ", message, "\n"]);
 format(#lager_log_message{}=Message,Config) ->
 	Encoder=lager_extras_mochijson2:encoder([{handler,fun json_handler/1},{utf8,proplists:get_value(utf8,Config,true)}]),
 	Encoder(Message).
