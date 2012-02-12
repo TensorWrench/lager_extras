@@ -12,7 +12,8 @@ This will take the output of lager_default_formatter and add ansi color codes to
 lager\_gelf\_formatter
 ====================
 
-Creates a json record of the log message, including all metadata, suitable for sending to graylog2.
+Creates a json record of the log message, including all metadata, suitable for sending to graylog2.  Warning:  strings will be turned into arrays of integers 
+while binaries are mapped to JSON strings.  The formatter tries to take an educated guess on metadata, but host and facility should be binaries in the configuration.  
 
 Config
 ------
@@ -76,18 +77,23 @@ Config
 Example:  Graylog2 Config
 =========================
 
-Supporting Graylog2 is what started most of this.  In theory (haven't tested it yet), use this to send compressed gelf to a Graylog2 server
+Supporting Graylog2 is what started most of this.  Use this to send compressed gelf to a Graylog2 server
   
     {lager_udp_backend, [
-        {formatter, lager_zlib_decorator},
-        {format_config, [{algorithm, compress},
-                         {formatter, {lager_gelf_formatter,[{host,"my server"},{facility:"erlang thingy"}]}}
-                        ]},
-        {host, "graylog2.mydomain.com"},
-        {port, 12201},
-        {level, debug},
-        {name, graylog2}
-    ]}
-
+       {host, "graylog2.myhost.com"},
+       {port, 12201},
+       {level, debug}, 
+       {name, graylog2},
+       {formatter, lager_zlib_decorator},
+       {format_config, [
+         {algorithm, compress},
+         {formatter, {
+           lager_gelf_formatter,[
+             {host,<<"server">>},
+             {facility,<<"erlang process">>}
+           ]}
+         }
+       ]}
+     ]}
    
    
