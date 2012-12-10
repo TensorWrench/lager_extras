@@ -35,10 +35,9 @@
 
 -record(state, {name, address, port, socket, level, formatter,format_config}).
 
--ifdef(TEST).
+%% -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
-%% -compile([{parse_transform, lager_transform}]).
--endif.
+%% -endif.
 
 -include_lib("lager/include/lager.hrl").
 
@@ -97,7 +96,7 @@ handle_call(_Request, State) ->
 
 %% @private
 handle_event(Message,#state{level=L,formatter=Formatter,format_config=FormatConfig} = State) ->
-    case lager_backend_utils:is_loggable(Message, L, State#state.name) of
+    case lager_util:is_loggable(Message, L, State#state.name) of
         true ->
             Msg=Formatter:format(Message,FormatConfig),
             ok=gen_udp:send(State#state.socket,State#state.address,State#state.port,Msg),
@@ -120,7 +119,7 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
--ifdef(TEST).
+%% -ifdef(TEST).
 
 -define(TEST_CONFIG(Address,Port),[{level,info},{name,test},{formatter,lager_default_formatter},{format_config,[message]},{host,Address},{port,Port}]).
 
@@ -172,4 +171,4 @@ basic_test_() ->
      }
     ].
 
--endif.
+%% -endif.
