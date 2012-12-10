@@ -35,9 +35,9 @@
 
 -record(state, {name, address, port, socket, level, formatter,format_config}).
 
-%% -ifdef(TEST).
+-ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
-%% -endif.
+-endif.
 
 -include_lib("lager/include/lager.hrl").
 
@@ -119,7 +119,7 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-%% -ifdef(TEST).
+-ifdef(TEST).
 
 -define(TEST_CONFIG(Address,Port),[{level,info},{name,test},{formatter,lager_default_formatter},{format_config,[message]},{host,Address},{port,Port}]).
 
@@ -171,4 +171,4 @@ basic_test_() ->
      }
     ].
 
-%% -endif.
+-endif.
