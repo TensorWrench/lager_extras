@@ -37,7 +37,7 @@
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
--compile([{parse_transform, lager_transform}]).
+%% -compile([{parse_transform, lager_transform}]).
 -endif.
 
 -include_lib("lager/include/lager.hrl").
@@ -139,7 +139,7 @@ basic_test_() ->
               {ok,State}=do_init(),
               
               % Send a message
-              ?MODULE:handle_event(#lager_log_message{message= <<"Test message">>,severity_as_int=?INFO},State),
+          ?MODULE:handle_event(lager_msg:new("Test message", {"date", "time"}, info, [], []), State),
               receive
                   {udp, _Socket, _IP, _InPortNo, Packet} -> ?assertMatch(<<"Test message">>, Packet)
                   after 500 -> throw(did_not_receive)
@@ -151,7 +151,7 @@ basic_test_() ->
               {ok,State}=do_init(),
               
               % Send a message
-              ?MODULE:handle_event(#lager_log_message{message= <<"Test message">>,severity_as_int=?DEBUG,destinations=[]},State),
+              ?MODULE:handle_event(lager_msg:new("Test message", {"date", "time"}, debug, [], []),State),
               receive
                   {udp, _Socket2, _IP, _InPortNo, Packet} -> throw({should_not_have_received,Packet})
                   after 500 -> ok
@@ -163,7 +163,7 @@ basic_test_() ->
               {ok,State}=do_init(),
               
               % Send a message
-              ?MODULE:handle_event(#lager_log_message{message= <<"Test message">>,severity_as_int=?DEBUG,destinations=[{?MODULE,test}]},State),
+              ?MODULE:handle_event(lager_msg:new("Test message", {"date", "time"}, debug, [], [{?MODULE,test}]),State),
               receive
                   {udp, _Socket2, _IP, _InPortNo, Packet} -> ?assertMatch(<<"Test message">>, Packet)
                   after 1000 -> throw(did_not_receive)

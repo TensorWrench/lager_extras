@@ -43,20 +43,16 @@
 %%
 %% API Functions
 %%
--spec format(#lager_log_message{},list()) -> iolist().
-format(#lager_log_message{}=Message,Config) ->
+-spec format(lager_msg:lager_msg(), list()) -> iolist().
+format(LagerMsg, Config) ->
 	Encoder=lager_extras_mochijson2:encoder([{handler,fun json_handler/1},{utf8,proplists:get_value(utf8,Config,true)}]),
-	Encoder(Message).
+	Encoder(LagerMsg).
 
-%% -record(lager_log_message,{
-%% 						   destinations,
-%% 						   metadata,
-%% 						   severity_as_int,
-%% 						   timestamp,
-%% 						   message
-%% 						   }).
-json_handler(#lager_log_message{message=Message,metadata=Metadata,timestamp={Date,Time},severity_as_int=Level}) ->
-	Severity=lager_util:num_to_level(Level),
+json_handler(LagerMsg) ->
+  Message = lager_msg:message(LagerMsg),
+  Metadata = lager_msg:metadata(LagerMsg),
+  {Date, Time} = lager_msg:timestamp(LagerMsg),
+  Severity = lager_msg:severity(LagerMsg),
 	{struct,[{date,list_to_binary(Date)},
 			 {time,list_to_binary(Time)},
 			 {severity,Severity},
@@ -72,10 +68,11 @@ make_printable(Other) -> iolist_to_binary(io_lib:format("~p",[Other])).
 basic_test_() ->
 	[{"Just a plain message.",
 	  	?_assertEqual(iolist_to_binary(<<"{\"date\":\"Day\",\"time\":\"Time\",\"severity\":\"error\",\"message\":\"Message\"}">>),
-				      iolist_to_binary(format(#lager_log_message{timestamp={"Day","Time"},
-															  message="Message",
-															  severity_as_int=lager_util:level_to_num(error),
-															  metadata=[]},
+                  iolist_to_binary(format(lager_msg:new("Message", {"Day","Time"}, error, [], []),
+            %% #lager_log_message{timestamp={"Day","Time"},
+															  %% message="Message",
+															  %% severity_as_int=lager_util:level_to_num(error),
+															  %% metadata=[]},
 									   [])))
 	  },
 	 {"Just a plain with standard metadata.",
@@ -87,10 +84,12 @@ basic_test_() ->
 										"}"
 
 									  ]),
-				      iolist_to_binary(format(#lager_log_message{timestamp={"Day","Time"},
-															  message="Message",
-															  severity_as_int=lager_util:level_to_num(error),
-															  metadata=[{module,?MODULE},{function,my_function},{line,999},{pid,pid_to_list(self())}]},
+                  iolist_to_binary(format(lager_msg:new("Message",{"Day","Time"}, error, [{module,?MODULE},{function,my_function},{line,999},{pid,pid_to_list(self())}], []),
+            
+            %% #lager_log_message{timestamp={"Day","Time"},
+															  %% message="Message",
+															  %% severity_as_int=lager_util:level_to_num(error),
+															  %% metadata=[{module,?MODULE},{function,my_function},{line,999},{pid,pid_to_list(self())}]},
 									   [])))
 	  }	 
 	 ].
