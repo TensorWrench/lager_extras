@@ -1,3 +1,12 @@
+NOTE
+====
+
+This repository is no longer under active maintenance.  If you find this useful and would like to take over ownership, send me a message and I'll point users at your repo.
+
+Overview
+========
+
+
 A collection of backends, formatters, and decorators for lager.  All configurations are done as property lists. 
 
 Decorators
