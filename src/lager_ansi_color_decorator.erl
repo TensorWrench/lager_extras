@@ -50,10 +50,10 @@
 %%  {algorithm, gzip | compress | zip } % The algorithm to use for compression.  Default: gzip
 %%  {debug | info | notice | warning | error | critical | alert | emergency, color()} % override the color for a particular log level.  Optional.
 %%
--spec format(#lager_log_message{},list()) -> iolist().
-format(#lager_log_message{severity_as_int=Level}=Message,Config) ->
+-spec format(lager_msg:lager_msg(),list()) -> iolist().
+format(Message,Config) ->
 	{Formatter,FormatConfig}=proplists:get_value(formatter,Config,no_formatter_specified),
-	[proplists:get_value(lager_util:num_to_level(Level),Config,default_color(Level)),
+	[proplists:get_value(lager_msg:severity(Message),Config,default_color(lager_msg:severity_as_int(Message))),
 	 Formatter:format(Message,FormatConfig),
 	 ?END_COLOR].
 
@@ -70,10 +70,7 @@ default_color(?EMERGENCY) -> "\e[5m\e[1;41m".
 
 manual_test() ->
 	F=fun(L) ->
-		V=format(#lager_log_message{timestamp={"Day","Time"},
-									  message="Message",
-									  severity_as_int=lager_util:level_to_num(L),
-									  metadata=[]},
+      V=format(lager_msg:new("Message", {"Day","Time"}, L, [], []),
 				   [{formatter,{lager_default_formatter,[]}}]),
 		?debugMsg(V)
 	end,

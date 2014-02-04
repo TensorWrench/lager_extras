@@ -49,14 +49,17 @@
 %%  {facility, Name} % facility name used to report. default: "erlang"
 %%  {short_message_size, N::integer()} % first N bytes of the message will be the short message. default: 80
 %%  {utf8,boolean()} % whether to use utf8 or not in the JSON.  default: true 
--spec format(#lager_log_message{},list()) -> iolist().
-format(#lager_log_message{}=Msg,[]) ->
+-spec format(lager_msg:lager_msg(),list()) -> iolist().
+format(Msg,[]) ->
 	format(Msg,[date, " ", time," [",severity,"] ",pid, " ", message, "\n"]);
-format(#lager_log_message{}=Message,Config) ->
+format(Message,Config) ->
 	Encoder=lager_extras_mochijson2:encoder([{utf8,proplists:get_value(utf8,Config,true)}]),
 	Encoder(convert(Message,Config)).
 
-convert(#lager_log_message{message=Message,metadata=Metadata,severity_as_int=Level},Config) ->
+convert(LagerMsg,Config) ->
+  Message = lager_msg:message(LagerMsg),
+  Metadata = lager_msg:metadata(LagerMsg),
+  Level = lager_msg:severity_as_int(LagerMsg),
 	ShortMessageSize=proplists:get_value(short_message_size,Config,80),
 	LongMessage=iolist_to_binary(Message),
 	{Mega,Sec,Micro} = os:timestamp(),
@@ -90,10 +93,7 @@ to_property([K,V]) ->
 basic_test_() ->
 	[{"Just a plain message.",
 	  	fun() -> 
-	  		<<${,$",Bin/binary>>=iolist_to_binary(format(#lager_log_message{timestamp={"Day","Time"},
-										  message="Message",
-										  severity_as_int=lager_util:level_to_num(error),
-										  metadata=[]},
+          <<${,$",Bin/binary>>=iolist_to_binary(format(lager_msg:new("Message", {"Day","Time"}, error, [], []),
 									   [])),
  	        Properties=[ to_property(re:split(P,"\"?:\"?",[{return,binary}])) || P <- re:split(Bin, "\"?,\"?|\"}", [{return, list},trim])],
 			?assertMatch(<<"1.0">>,proplists:get_value(version,Properties)),
@@ -104,10 +104,9 @@ basic_test_() ->
 	  },
 	 {"Just a plain with standard metadata.",
 	  	fun() -> 
-	  		<<${,$",Bin/binary>>= iolist_to_binary(format(#lager_log_message{timestamp={"Day","Time"},
-															  message="Message",
-															  severity_as_int=lager_util:level_to_num(error),
-															  metadata=[{module,?MODULE},{function,my_function},{line,999},{pid,pid_to_list(self())}]},[])),
+          <<${,$",Bin/binary>>= iolist_to_binary(format(lager_msg:new("Message", {"Day","Time"}, error,
+                                                                      [{module,?MODULE},{function,my_function},{line,999},{pid,pid_to_list(self())}],[]),
+                                                        [])),
  	        Properties=[ to_property(re:split(P,"\"?:\"?",[{return,binary}])) || P <- re:split(Bin, "\"?,\"?|\"}", [{return, list},trim])],
 			?assertMatch(<<"lager_gelf_formatter">>,proplists:get_value(file,Properties)),
 			?assertMatch(<<"999">>,proplists:get_value(line,Properties)),

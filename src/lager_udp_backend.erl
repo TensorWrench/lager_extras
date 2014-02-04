@@ -37,7 +37,6 @@
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
--compile([{parse_transform, lager_transform}]).
 -endif.
 
 -include_lib("lager/include/lager.hrl").
@@ -97,7 +96,7 @@ handle_call(_Request, State) ->
 
 %% @private
 handle_event(Message,#state{level=L,formatter=Formatter,format_config=FormatConfig} = State) ->
-    case lager_backend_utils:is_loggable(Message, L, State#state.name) of
+    case lager_util:is_loggable(Message, L, State#state.name) of
         true ->
             Msg=Formatter:format(Message,FormatConfig),
             ok=gen_udp:send(State#state.socket,State#state.address,State#state.port,Msg),
@@ -139,7 +138,7 @@ basic_test_() ->
               {ok,State}=do_init(),
               
               % Send a message
-              ?MODULE:handle_event(#lager_log_message{message= <<"Test message">>,severity_as_int=?INFO},State),
+          ?MODULE:handle_event(lager_msg:new("Test message", {"date", "time"}, info, [], []), State),
               receive
                   {udp, _Socket, _IP, _InPortNo, Packet} -> ?assertMatch(<<"Test message">>, Packet)
                   after 500 -> throw(did_not_receive)
@@ -151,7 +150,7 @@ basic_test_() ->
               {ok,State}=do_init(),
               
               % Send a message
-              ?MODULE:handle_event(#lager_log_message{message= <<"Test message">>,severity_as_int=?DEBUG,destinations=[]},State),
+              ?MODULE:handle_event(lager_msg:new("Test message", {"date", "time"}, debug, [], []),State),
               receive
                   {udp, _Socket2, _IP, _InPortNo, Packet} -> throw({should_not_have_received,Packet})
                   after 500 -> ok
@@ -163,7 +162,7 @@ basic_test_() ->
               {ok,State}=do_init(),
               
               % Send a message
-              ?MODULE:handle_event(#lager_log_message{message= <<"Test message">>,severity_as_int=?DEBUG,destinations=[{?MODULE,test}]},State),
+              ?MODULE:handle_event(lager_msg:new("Test message", {"date", "time"}, debug, [], [{?MODULE,test}]),State),
               receive
                   {udp, _Socket2, _IP, _InPortNo, Packet} -> ?assertMatch(<<"Test message">>, Packet)
                   after 1000 -> throw(did_not_receive)
